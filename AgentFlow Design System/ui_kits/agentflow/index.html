@@ -1,0 +1,65 @@
+<!-- @dsCard group="AgentFlow App" viewport="1280x800" name="AgentFlow — Control Center" subtitle="Interactive 5-screen app: Dashboard, Pipeline, Agent Detail, QA, Settings" -->
+<!-- @startingPoint section="AgentFlow" subtitle="Full AgentFlow control-center app — 5 screens" viewport="1280x800" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AgentFlow — Control Center</title>
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  html, body { margin: 0; height: 100%; background: var(--bg-base); color: var(--text-primary); }
+  #root { height: 100vh; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg-base); }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; border: 2px solid var(--bg-base); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel" src="Shell.jsx"></script>
+<script type="text/babel" src="Dashboard.jsx"></script>
+<script type="text/babel" src="Office.jsx"></script>
+<script type="text/babel" src="PipelineBuilder.jsx"></script>
+<script type="text/babel" src="AgentDetail.jsx"></script>
+<script type="text/babel" src="QAView.jsx"></script>
+<script type="text/babel" src="Settings.jsx"></script>
+<script type="text/babel">
+  const TITLES = { dashboard: 'Dashboard', office: 'Pixel Office', pipeline: 'Pipeline Builder', agent: 'Agent Detail', qa: 'QA Engineer', settings: 'Settings' };
+
+  function App() {
+    const persisted = (() => { try { return localStorage.getItem('af_screen'); } catch (e) { return null; } })();
+    const [screen, setScreen] = React.useState(persisted || 'dashboard');
+    const nav = (s) => { setScreen(s); try { localStorage.setItem('af_screen', s); } catch (e) {} };
+
+    let body;
+    if (screen === 'dashboard') body = <window.Dashboard onOpenAgent={() => nav('agent')} />;
+    else if (screen === 'office') body = <window.Office onOpenAgent={() => nav('agent')} />;
+    else if (screen === 'pipeline') body = <window.PipelineBuilder />;
+    else if (screen === 'agent') body = <window.AgentDetail onBack={() => nav('dashboard')} />;
+    else if (screen === 'qa') body = <window.QAView />;
+    else if (screen === 'settings') body = <window.Settings />;
+
+    const padded = screen === 'pipeline' || screen === 'settings'; // these manage their own layout
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <window.TopBar />
+        <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+          <window.SideNav active={screen} onNavigate={nav} />
+          <main style={{ flex: 1, minWidth: 0, background: 'var(--bg-base)', overflow: 'hidden' }}>
+            {body}
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

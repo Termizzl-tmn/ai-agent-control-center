@@ -1,0 +1,58 @@
+/* AgentFlow — Color Tokens
+   "Retro Terminal meets Pixel Office" — dark only.
+   Base values first, then semantic aliases. */
+
+:root {
+  /* ---- Surfaces (dark ramp) ---- */
+  --bg-base:        #060B16;  /* page background — deepest */
+  --bg-surface:     #0D1120;  /* cards, panels */
+  --bg-elevated:    #131929;  /* selected / hovered / elevated */
+  --bg-sunken:      #04060D;  /* terminal wells, inputs */
+  --border:         #1E2538;  /* dividers, card borders */
+  --border-strong:  #2A3552;  /* hover borders, emphasized rules */
+
+  /* ---- Text ---- */
+  --text-primary:   #E2E8F8;  /* headings, body */
+  --text-secondary: #8A93AD;  /* sub-labels */
+  --text-muted:     #4A5068;  /* timestamps, captions, placeholders */
+  --text-inverse:   #060B16;  /* text on neon / brand fills */
+
+  /* ---- Brand ---- */
+  --brand:          #00B4D8;  /* AgentFlow cyan */
+  --brand-dim:      #0A4A5C;  /* brand at low intensity */
+
+  /* ---- Status accents ---- */
+  --status-running: #00E5A0;  /* neon green — active */
+  --status-waiting: #F5C542;  /* amber — blocked / waiting */
+  --status-idle:    #4A5068;  /* gray — dormant */
+  --status-done:    #4D9FFF;  /* blue — complete */
+  --status-error:   #FF4D6D;  /* red — failed */
+
+  /* status tint backgrounds (used behind pill badges, ~14% alpha) */
+  --status-running-bg: rgba(0, 229, 160, 0.14);
+  --status-waiting-bg: rgba(245, 197, 66, 0.14);
+  --status-idle-bg:    rgba(74, 80, 104, 0.20);
+  --status-done-bg:    rgba(77, 159, 255, 0.14);
+  --status-error-bg:   rgba(255, 77, 109, 0.14);
+
+  /* ---- Agent role colors (shirt / accent per DESIGN-PIXEL) ---- */
+  --role-po:        #7C3AED;  /* PO — purple */
+  --role-pm:        #0284C7;  /* PM — blue */
+  --role-techlead:  #059669;  /* Tech Lead — green */
+  --role-dev:       #00E5A0;  /* Developer — teal */
+  --role-qa:        #D97706;  /* QA — amber */
+  --role-devops:    #DC2626;  /* DevOps — red */
+  --role-notifier:  #6B7280;  /* Notifier — gray */
+
+  /* ---- Semantic aliases ---- */
+  --surface-page:   var(--bg-base);
+  --surface-card:   var(--bg-surface);
+  --surface-raised: var(--bg-elevated);
+  --surface-input:  var(--bg-sunken);
+
+  --text-body:      var(--text-primary);
+  --text-label:     var(--text-muted);
+
+  --accent:         var(--brand);
+  --focus-ring:     var(--brand);
+}

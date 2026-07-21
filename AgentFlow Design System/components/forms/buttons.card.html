@@ -1,0 +1,45 @@
+<!-- @dsCard group="Components" viewport="700x230" name="Buttons" subtitle="Variants, sizes, icon & disabled" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  body { margin: 0; background: var(--bg-base); padding: 22px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .cap { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--text-muted); margin: 0 0 8px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel">
+  const { Button } = window.AgentFlowDesignSystem_98d862;
+  function Demo() {
+    return (
+      <div>
+        <p className="cap">Variants</p>
+        <div className="row">
+          <Button variant="primary" icon="▶">Run All</Button>
+          <Button variant="brand">Save Settings</Button>
+          <Button variant="secondary">Config</Button>
+          <Button variant="ghost">Clear</Button>
+          <Button variant="danger" icon="■">Stop</Button>
+        </div>
+        <p className="cap">Sizes &amp; disabled</p>
+        <div className="row">
+          <Button variant="secondary" size="sm">Small</Button>
+          <Button variant="secondary" size="md">Medium</Button>
+          <Button variant="secondary" size="lg">Large</Button>
+          <Button variant="primary" disabled>Disabled</Button>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

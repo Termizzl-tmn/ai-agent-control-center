@@ -1,0 +1,47 @@
+<!-- @dsCard group="Components" viewport="700x320" name="Form Fields" subtitle="Input, Select, Slider, Switch" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  body { margin: 0; background: var(--bg-base); padding: 22px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 28px; max-width: 660px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel">
+  const { Input, Select, Slider, Switch, Button } = window.AgentFlowDesignSystem_98d862;
+  function Demo() {
+    const [key, setKey] = React.useState('sk-ant-api03-xxxx');
+    const [model, setModel] = React.useState('claude-sonnet-4-6');
+    const [tokens, setTokens] = React.useState(4096);
+    const [temp, setTemp] = React.useState(0.2);
+    const [slack, setSlack] = React.useState(true);
+    const [email, setEmail] = React.useState(false);
+    return (
+      <div className="grid">
+        <Input label="Anthropic API Key" type="password" value={key} onChange={e=>setKey(e.target.value)}
+          addon={<Button size="md">Test</Button>} hint="Stored locally — never sent anywhere except Anthropic." />
+        <Select label="Model" value={model} onChange={e=>setModel(e.target.value)}
+          options={[{value:'claude-sonnet-4-6',label:'claude-sonnet-4-6 (recommended)'},{value:'claude-opus-4-8',label:'claude-opus-4-8 (powerful)'}]} />
+        <Slider label="Max Tokens per Agent Run" value={tokens} min={1024} max={16384} step={512}
+          onChange={e=>setTokens(+e.target.value)} format={v=>`${v.toLocaleString()} tokens`} />
+        <Slider label="Temperature" value={temp} min={0} max={1} step={0.1}
+          onChange={e=>setTemp(+e.target.value)} accent="var(--status-running)" />
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <Switch checked={slack} onChange={setSlack} label="Slack notifications" />
+          <Switch checked={email} onChange={setEmail} label="Email notifications" />
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+/* AgentFlow — Spacing, Borders, Radii, Shadows & Effects
+   Developer-tool density. Sharp corners on status/structural elements;
+   radii are small (2–6px) and used sparingly. Neon "glow" shadows match
+   status colors. Scanline + grid-dot textures are core background motifs. */
+
+:root {
+  /* ---- Spacing scale (4px base) ---- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Radii (kept tight; 0 on status pills' container edges) ---- */
+  --radius-none: 0px;
+  --radius-xs:   2px;   /* tags, pixel-y chips */
+  --radius-sm:   4px;   /* buttons, inputs */
+  --radius-md:   6px;   /* cards, panels */
+  --radius-pill: 999px; /* status dot + pill badges */
+
+  /* ---- Borders ---- */
+  --border-width:        1px;
+  --border-width-strong: 2px;   /* selected nodes / featured cards */
+  --border-line:   var(--border-width) solid var(--border);
+  --border-raised: var(--border-width) solid var(--border-strong);
+
+  /* ---- Elevation shadows (subtle — depth comes from borders, not blur) ---- */
+  --shadow-card:  0 1px 0 rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.35);
+  --shadow-pop:   0 8px 28px rgba(0,0,0,0.55);
+
+  /* ---- Status glows (use on progress bars, selected nodes, dots) ---- */
+  --glow-running: 0 0 0 1px rgba(0,229,160,0.5), 0 0 12px rgba(0,229,160,0.45);
+  --glow-waiting: 0 0 0 1px rgba(245,197,66,0.5), 0 0 12px rgba(245,197,66,0.40);
+  --glow-done:    0 0 0 1px rgba(77,159,255,0.5), 0 0 12px rgba(77,159,255,0.40);
+  --glow-error:   0 0 0 1px rgba(255,77,109,0.5), 0 0 12px rgba(255,77,109,0.45);
+  --glow-brand:   0 0 0 1px rgba(0,180,216,0.5), 0 0 14px rgba(0,180,216,0.40);
+
+  /* ---- Texture motifs ---- */
+  /* horizontal scanlines — overlay on panels for CRT feel */
+  --scanlines: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.020) 0px,
+    rgba(255,255,255,0.020) 1px,
+    transparent 1px,
+    transparent 3px
+  ); /* @kind other */
+  /* canvas grid dots — pipeline / workspace background */
+  --grid-dots: radial-gradient(rgba(120,140,180,0.10) 1px, transparent 1px); /* @kind other */
+  --grid-dots-size: 24px 24px;
+}
+
+/* Reusable texture utility classes */
+.af-scanlines { position: relative; }
+.af-scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--scanlines);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+.af-grid {
+  background-color: var(--bg-base);
+  background-image: var(--grid-dots);
+  background-size: var(--grid-dots-size);
+}

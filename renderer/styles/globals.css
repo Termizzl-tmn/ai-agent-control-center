@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:ital,wght@0,400;0,500&family=DM+Sans:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Tailwind-compat vars (HSL, used by bg-background / text-foreground etc.) ── */
+    --background:         224 57% 6%;     /* #060B16 */
+    --foreground:         222 56% 93%;    /* #E2E8F8 */
+    --card:               228 42% 9%;     /* #0D1120 */
+    --card-foreground:    222 56% 93%;
+    --border:             228 30% 17%;    /* #1E2538 */
+    --input:              228 30% 17%;
+    --primary:            210 40% 98%;
+    --primary-foreground: 222 47% 1%;
+    --secondary:          226 37% 12%;    /* #131929 */
+    --secondary-foreground: 222 56% 93%;
+    --muted:              226 37% 12%;    /* #131929 */
+    --muted-foreground:   228 17% 35%;    /* #4A5068 */
+    --accent:             197 100% 42%;   /* #00B4D8 */
+    --accent-foreground:  224 57% 6%;
+    --destructive:        348 100% 65%;   /* #FF4D6D */
+    --destructive-foreground: 222 56% 93%;
+    --ring:               228 30% 17%;
+    --radius:             6px;
+
+    /* ── Design system tokens (hex, for inline styles and new components) ── */
+    --bg-base:       #060B16;
+    --bg-surface:    #0D1120;
+    --bg-elevated:   #131929;
+    --bg-sunken:     #04060D;
+    --ds-border:     #1E2538;
+    --border-strong: #2A3552;
+
+    --text-primary:   #E2E8F8;
+    --text-secondary: #8A93AD;
+    --text-muted:     #4A5068;
+
+    --brand:          #00B4D8;
+
+    --status-running: #00E5A0;
+    --status-waiting: #F5C542;
+    --status-idle:    #4A5068;
+    --status-done:    #4D9FFF;
+    --status-error:   #FF4D6D;
+
+    --status-running-bg: rgba(0, 229, 160, 0.14);
+    --status-idle-bg:    rgba(74, 80, 104, 0.20);
+    --status-done-bg:    rgba(77, 159, 255, 0.14);
+    --status-error-bg:   rgba(255, 77, 109, 0.14);
+
+    --role-backlog:   #7C3AED;
+    --role-planning:  #0284C7;
+    --role-architect: #059669;
+    --role-code:      #00E5A0;
+    --role-test:      #D97706;
+    --role-pipeline:  #DC2626;
+    --role-alert:     #6B7280;
+
+    --font-display: 'Syne', system-ui, sans-serif;
+    --font-mono:    'DM Mono', ui-monospace, monospace;
+    --font-body:    'DM Sans', system-ui, sans-serif;
+  }
+
+  * {
+    @apply border-border box-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--ds-border); border-radius: 999px; }
+}
+
+@keyframes af-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+
+/* CRT scanline texture overlay — apply to any panel */
+.af-scanlines { position: relative; }
+.af-scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.020) 0px,
+    rgba(255, 255, 255, 0.020) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  border-radius: inherit;
+  z-index: 1;
+}

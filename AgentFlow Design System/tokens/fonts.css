@@ -1,0 +1,6 @@
+/* AgentFlow — Webfonts
+   No font binaries shipped with the source codebase. Syne, DM Mono and
+   DM Sans are all open-source families on Google Fonts; loaded here from the
+   Google Fonts CDN. Swap to self-hosted woff2 if offline use is required. */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
