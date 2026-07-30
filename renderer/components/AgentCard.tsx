@@ -41,6 +41,11 @@ export function AgentCard({ agent, selected }: Props) {
     if (updated) updateAgent(updated)
   }
 
+  async function saveGithubRepo(value: string) {
+    const updated = await ipc?.updateAgent(agent.id, { githubRepo: value })
+    if (updated) updateAgent(updated)
+  }
+
   async function handleRun() {
     if (!ipc) return
     const prev = agent.status
@@ -142,6 +147,14 @@ export function AgentCard({ agent, selected }: Props) {
           emptyLabel="No watch folder"
           activeColor="#4D9FFF"
           onSave={saveWatchPath}
+        />
+        <EditableTrigger
+          icon="🔀"
+          value={agent.githubRepo}
+          inputPlaceholder="owner/repo"
+          emptyLabel="No GitHub repo"
+          activeColor="#8957E5"
+          onSave={saveGithubRepo}
         />
       </div>
 

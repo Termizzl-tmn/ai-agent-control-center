@@ -22,6 +22,7 @@ export interface Agent {
   status: AgentStatus
   cronSchedule: string
   watchPath: string
+  githubRepo: string
   createdAt: number
   updatedAt: number
 }
@@ -33,6 +34,24 @@ export interface TaskRun {
   finishedAt?: number
   exitCode?: number
   output: string
+  inputTokens: number
+  outputTokens: number
+}
+
+export interface TokenUsage {
+  inputTokens: number
+  outputTokens: number
+}
+
+export interface AgentMetrics {
+  agentId: string
+  totalRuns: number
+  successRuns: number
+  finishedRuns: number
+  avgRunTimeMs: number | null
+  totalInputTokens: number
+  totalOutputTokens: number
+  lastRunAt: number | null
 }
 
 export interface LogEntry {
@@ -45,7 +64,15 @@ export interface LogEntry {
 
 export interface RunCallbacks {
   onOutput: (chunk: string) => void
-  onDone: (exitCode: number) => void
+  onDone: (exitCode: number, usage?: TokenUsage) => void
+}
+
+export type DispatchStatus = 'sent' | 'skipped' | 'error'
+
+export interface DispatchResult {
+  slack: DispatchStatus
+  line: DispatchStatus
+  errors: string[]
 }
 
 export interface PipelineNode {
@@ -109,5 +136,11 @@ export const IPC = {
   PIPELINE_LIST: 'pipeline:list',
   PIPELINE_SAVE: 'pipeline:save',
   PIPELINE_DELETE: 'pipeline:delete',
+
+  // Alert dispatch
+  ALERT_TEST: 'alert:test',
+
+  // Metrics
+  METRICS_LIST: 'metrics:list',
 } as const
 

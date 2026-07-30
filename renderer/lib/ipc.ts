@@ -1,8 +1,12 @@
-import type { Agent, LogEntry, PipelineTemplate } from '../../main/ipc/types'
+import type { Agent, LogEntry, PipelineTemplate, DispatchResult, AgentMetrics } from '../../main/ipc/types'
 
 export interface AppSettings {
   anthropicApiKey: string
   model: string
+  slackWebhookUrl: string
+  lineChannelAccessToken: string
+  lineTargetId: string
+  githubToken: string
 }
 
 declare global {
@@ -31,6 +35,10 @@ declare global {
       listPipelines: () => Promise<PipelineTemplate[]>
       savePipeline: (payload: { id?: string; name: string; nodes: PipelineTemplate['nodes']; edges: PipelineTemplate['edges'] }) => Promise<PipelineTemplate>
       deletePipeline: (id: string) => Promise<{ ok: boolean }>
+
+      testAlert: () => Promise<DispatchResult>
+
+      listMetrics: () => Promise<AgentMetrics[]>
     }
   }
 }

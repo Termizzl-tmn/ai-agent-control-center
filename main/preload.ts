@@ -49,4 +49,10 @@ contextBridge.exposeInMainWorld('ipc', {
   listPipelines: () => ipcRenderer.invoke(IPC.PIPELINE_LIST),
   savePipeline: (payload: object) => ipcRenderer.invoke(IPC.PIPELINE_SAVE, payload),
   deletePipeline: (id: string) => ipcRenderer.invoke(IPC.PIPELINE_DELETE, id),
+
+  // Alert dispatch
+  testAlert: () => ipcRenderer.invoke(IPC.ALERT_TEST),
+
+  // Metrics
+  listMetrics: () => ipcRenderer.invoke(IPC.METRICS_LIST),
 })

@@ -47,14 +47,14 @@ Status: COMPLETE · Completed 2026-07-10
 
 ## Phase 2 — Power Features
 
-Status: IN PROGRESS
+Status: COMPLETE · Completed 2026-07-31
 
 - [x] Drag-and-drop pipeline builder — save and reuse workflow templates
 - [x] Scheduled agents — cron-based triggers via node-cron
 - [x] Auto-trigger on file change — filesystem watcher → agent run
-- [ ] Slack / LINE alert dispatch via Alert Agent
-- [ ] Agent performance metrics — avg run time, token usage, success rate
-- [ ] GitHub integration — PR events trigger Code / Test Agent
+- [x] Slack / LINE alert dispatch via Alert Agent
+- [x] Agent performance metrics — avg run time, token usage, success rate
+- [x] GitHub integration — PR events trigger Code / Test Agent (polling, not webhook)
 
 ---
 
@@ -64,4 +64,4 @@ Status: NOT PLANNED
 
 ---
 
-Last updated: 2026-07-30 (evening)
+Last updated: 2026-07-31

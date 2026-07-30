@@ -5,6 +5,7 @@ import { useAgentStore } from '../store/agentStore'
 import { AgentCard } from '../components/AgentCard'
 import { LogPanel } from '../components/LogPanel'
 import { TerminalPanel } from '../components/TerminalPanel'
+import { MetricsPanel } from '../components/MetricsPanel'
 import type { AgentRole } from '../../main/ipc/types'
 
 // Canvas requires DOM — no SSR
@@ -13,13 +14,14 @@ const PixelOffice = dynamic(
   { ssr: false }
 )
 
-type Tab    = 'office' | 'logs' | 'terminal'
+type Tab    = 'office' | 'logs' | 'terminal' | 'metrics'
 type Preset = 'all' | 'po' | 'dev' | 'qa'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'office',   label: 'Office' },
   { id: 'logs',     label: 'Activity Log' },
   { id: 'terminal', label: 'Terminal' },
+  { id: 'metrics',  label: 'Metrics' },
 ]
 
 const PRESETS: { id: Preset; label: string; roles: AgentRole[] }[] = [
@@ -158,6 +160,7 @@ export default function Dashboard() {
             {activeTab === 'office'   && <PixelOffice />}
             {activeTab === 'logs'     && <LogPanel />}
             {activeTab === 'terminal' && <TerminalPanel />}
+            {activeTab === 'metrics'  && <MetricsPanel />}
           </div>
         </div>
       </div>

@@ -1,14 +1,16 @@
 import { create } from 'zustand'
-import type { Agent, LogEntry } from '../../main/ipc/types'
+import type { Agent, LogEntry, AgentMetrics } from '../../main/ipc/types'
 
 interface AgentStore {
   agents: Agent[]
   logs: LogEntry[]
+  metrics: AgentMetrics[]
   terminalOutput: Record<string, string>  // agentId → cumulative output
   selectedAgentId: string | null
 
   setAgents: (agents: Agent[]) => void
   setLogs: (logs: LogEntry[]) => void
+  setMetrics: (metrics: AgentMetrics[]) => void
   updateAgentStatus: (agentId: string, status: Agent['status']) => void
   updateAgent: (agent: Agent) => void
   appendOutput: (agentId: string, chunk: string) => void
@@ -19,6 +21,7 @@ interface AgentStore {
 export const useAgentStore = create<AgentStore>((set) => ({
   agents: [],
   logs: [],
+  metrics: [],
   terminalOutput: {},
   selectedAgentId: null,
 
@@ -26,6 +29,8 @@ export const useAgentStore = create<AgentStore>((set) => ({
 
   // DB returns DESC (newest first); store keeps newest-first for display
   setLogs: (logs) => set({ logs }),
+
+  setMetrics: (metrics) => set({ metrics }),
 
   updateAgentStatus: (agentId, status) =>
     set((s) => ({

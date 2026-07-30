@@ -30,17 +30,20 @@ function migrate(db: Database.Database) {
       status      TEXT NOT NULL DEFAULT 'idle',
       cronSchedule TEXT NOT NULL DEFAULT '',
       watchPath   TEXT NOT NULL DEFAULT '',
+      githubRepo  TEXT NOT NULL DEFAULT '',
       createdAt   INTEGER NOT NULL,
       updatedAt   INTEGER NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS task_runs (
-      id         TEXT PRIMARY KEY,
-      agentId    TEXT NOT NULL,
-      startedAt  INTEGER NOT NULL,
-      finishedAt INTEGER,
-      exitCode   INTEGER,
-      output     TEXT,
+      id           TEXT PRIMARY KEY,
+      agentId      TEXT NOT NULL,
+      startedAt    INTEGER NOT NULL,
+      finishedAt   INTEGER,
+      exitCode     INTEGER,
+      output       TEXT,
+      inputTokens  INTEGER NOT NULL DEFAULT 0,
+      outputTokens INTEGER NOT NULL DEFAULT 0,
       FOREIGN KEY (agentId) REFERENCES agents(id) ON DELETE CASCADE
     );
 
@@ -71,7 +74,13 @@ function migrate(db: Database.Database) {
   if (!colNames.includes('mode'))        db.exec("ALTER TABLE agents ADD COLUMN mode TEXT NOT NULL DEFAULT 'pty'")
   if (!colNames.includes('cronSchedule')) db.exec("ALTER TABLE agents ADD COLUMN cronSchedule TEXT NOT NULL DEFAULT ''")
   if (!colNames.includes('watchPath'))    db.exec("ALTER TABLE agents ADD COLUMN watchPath TEXT NOT NULL DEFAULT ''")
+  if (!colNames.includes('githubRepo'))   db.exec("ALTER TABLE agents ADD COLUMN githubRepo TEXT NOT NULL DEFAULT ''")
   upgradeSeededAgents(db)
+
+  const runCols = db.prepare("PRAGMA table_info(task_runs)").all() as { name: string }[]
+  const runColNames = runCols.map(c => c.name)
+  if (!runColNames.includes('inputTokens'))  db.exec("ALTER TABLE task_runs ADD COLUMN inputTokens INTEGER NOT NULL DEFAULT 0")
+  if (!runColNames.includes('outputTokens')) db.exec("ALTER TABLE task_runs ADD COLUMN outputTokens INTEGER NOT NULL DEFAULT 0")
 }
 
 interface DefaultAgent {

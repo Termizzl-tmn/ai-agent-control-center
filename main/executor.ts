@@ -5,7 +5,7 @@ import { Agent, TaskRun, RunCallbacks } from './ipc/types'
 const queue = new PQueue({ concurrency: 3 })
 const processes = new Map<string, pty.IPty>()
 
-export function runAgent(agent: Agent, _run: TaskRun, callbacks: RunCallbacks): Promise<void> {
+export function runAgent(agent: Agent, _run: TaskRun, callbacks: RunCallbacks, contextMessage?: string): Promise<void> {
   return queue.add(() => new Promise<void>((resolve, reject) => {
     const shell = process.platform === 'win32' ? 'cmd.exe' : 'bash'
     const args = process.platform === 'win32' ? ['/c', agent.command] : ['-c', agent.command]
@@ -15,7 +15,7 @@ export function runAgent(agent: Agent, _run: TaskRun, callbacks: RunCallbacks): 
       proc = pty.spawn(shell, args, {
         name: 'xterm-color',
         cwd: agent.workingDir || process.cwd(),
-        env: process.env as Record<string, string>,
+        env: { ...process.env, AGENTFLOW_CONTEXT: contextMessage ?? '' } as Record<string, string>,
       })
     } catch (err) {
       reject(err)

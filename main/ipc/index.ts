@@ -8,6 +8,8 @@ import { sendToRenderer, addLog } from './utils'
 import { runAgentById, killAgentById } from '../taskRunner'
 import { scheduleAgent, unscheduleAgent, isValidCron } from '../scheduler'
 import { watchAgentPath, unwatchAgentPath, isValidWatchPath } from '../fileWatchTrigger'
+import { dispatchAlert } from '../alertDispatcher'
+import { pollAgentRepo, unpollAgentRepo, isValidGithubRepo, isValidGithubRepoFormat } from '../githubTrigger'
 
 export function registerIpcHandlers(win: BrowserWindow) {
   // --- Agent CRUD ---
@@ -24,20 +26,28 @@ export function registerIpcHandlers(win: BrowserWindow) {
       ...data,
     }
     getDb().prepare(
-      'INSERT INTO agents (id, name, role, description, command, workingDir, mode, status, cronSchedule, watchPath, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
-    ).run(agent.id, agent.name, agent.role, agent.description, agent.command, agent.workingDir, agent.mode, agent.status, agent.cronSchedule, agent.watchPath, agent.createdAt, agent.updatedAt)
+      'INSERT INTO agents (id, name, role, description, command, workingDir, mode, status, cronSchedule, watchPath, githubRepo, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    ).run(agent.id, agent.name, agent.role, agent.description, agent.command, agent.workingDir, agent.mode, agent.status, agent.cronSchedule, agent.watchPath, agent.githubRepo, agent.createdAt, agent.updatedAt)
     return agent
   })
 
-  ipcMain.handle(IPC.AGENT_UPDATE, (_e, id: string, patch: Partial<Agent>) => {
+  ipcMain.handle(IPC.AGENT_UPDATE, async (_e, id: string, patch: Partial<Agent>) => {
     if (patch.cronSchedule && !isValidCron(patch.cronSchedule)) {
       throw new Error(`Invalid cron expression: ${patch.cronSchedule}`)
     }
     if (patch.watchPath && !isValidWatchPath(patch.watchPath)) {
       throw new Error(`Not a directory: ${patch.watchPath}`)
     }
+    if (patch.githubRepo) {
+      if (!isValidGithubRepoFormat(patch.githubRepo)) {
+        throw new Error(`Expected "owner/repo" format: ${patch.githubRepo}`)
+      }
+      if (!(await isValidGithubRepo(patch.githubRepo))) {
+        throw new Error(`Repo not found or not accessible: ${patch.githubRepo}`)
+      }
+    }
 
-    const PATCHABLE: ReadonlyArray<keyof Agent> = ['name', 'role', 'description', 'command', 'workingDir', 'mode', 'status', 'cronSchedule', 'watchPath']
+    const PATCHABLE: ReadonlyArray<keyof Agent> = ['name', 'role', 'description', 'command', 'workingDir', 'mode', 'status', 'cronSchedule', 'watchPath', 'githubRepo']
     const safe = Object.fromEntries(
       Object.entries(patch).filter(([k]) => PATCHABLE.includes(k as keyof Agent))
     )
@@ -54,6 +64,10 @@ export function registerIpcHandlers(win: BrowserWindow) {
       if (agent.watchPath) watchAgentPath(win, agent)
       else unwatchAgentPath(id)
     }
+    if ('githubRepo' in patch) {
+      if (agent.githubRepo) pollAgentRepo(win, agent)
+      else unpollAgentRepo(id)
+    }
     return agent
   })
 
@@ -61,6 +75,7 @@ export function registerIpcHandlers(win: BrowserWindow) {
     getDb().prepare('DELETE FROM agents WHERE id = ?').run(id)
     unscheduleAgent(id)
     unwatchAgentPath(id)
+    unpollAgentRepo(id)
     return { ok: true }
   })
 
@@ -143,5 +158,27 @@ export function registerIpcHandlers(win: BrowserWindow) {
   ipcMain.handle(IPC.PIPELINE_DELETE, (_e, id: string) => {
     getDb().prepare('DELETE FROM pipeline_templates WHERE id = ?').run(id)
     return { ok: true }
+  })
+
+  // --- Alert dispatch ---
+  ipcMain.handle(IPC.ALERT_TEST, () => {
+    return dispatchAlert('🔔 AgentFlow test alert — your Slack/LINE integration is working.')
+  })
+
+  // --- Metrics ---
+  ipcMain.handle(IPC.METRICS_LIST, () => {
+    return getDb().prepare(`
+      SELECT
+        agentId,
+        COUNT(*) as totalRuns,
+        SUM(CASE WHEN exitCode = 0 THEN 1 ELSE 0 END) as successRuns,
+        SUM(CASE WHEN finishedAt IS NOT NULL THEN 1 ELSE 0 END) as finishedRuns,
+        AVG(CASE WHEN finishedAt IS NOT NULL THEN finishedAt - startedAt END) as avgRunTimeMs,
+        SUM(inputTokens) as totalInputTokens,
+        SUM(outputTokens) as totalOutputTokens,
+        MAX(startedAt) as lastRunAt
+      FROM task_runs
+      GROUP BY agentId
+    `).all()
   })
 }

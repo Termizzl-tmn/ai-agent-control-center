@@ -10,6 +10,7 @@ export async function runClaudeAgent(
   apiKey: string,
   model: string,
   callbacks: RunCallbacks,
+  contextMessage?: string,
 ) {
   if (!apiKey) {
     callbacks.onOutput('[AgentFlow] No Anthropic API key set. Go to Settings → API Key to configure.\n')
@@ -30,17 +31,20 @@ export async function runClaudeAgent(
         model,
         max_tokens: 4096,
         system: systemPrompt,
-        messages: [{ role: 'user', content: 'Please begin your task and show your work.' }],
+        messages: [{ role: 'user', content: contextMessage ?? 'Please begin your task and show your work.' }],
       },
       { signal: controller.signal },
     )
 
     stream.on('text', (text) => callbacks.onOutput(text))
 
-    await stream.finalMessage()
+    const finalMessage = await stream.finalMessage()
 
     activeStreams.delete(agent.id)
-    callbacks.onDone(0)
+    callbacks.onDone(0, {
+      inputTokens: finalMessage.usage.input_tokens,
+      outputTokens: finalMessage.usage.output_tokens,
+    })
   } catch (err: unknown) {
     activeStreams.delete(agent.id)
     if (err instanceof Error && err.name === 'AbortError') {
