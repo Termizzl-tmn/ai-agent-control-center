@@ -51,7 +51,7 @@ Status: IN PROGRESS
 
 - [x] Drag-and-drop pipeline builder — save and reuse workflow templates
 - [x] Scheduled agents — cron-based triggers via node-cron
-- [ ] Auto-trigger on file change — filesystem watcher → agent run
+- [x] Auto-trigger on file change — filesystem watcher → agent run
 - [ ] Slack / LINE alert dispatch via Alert Agent
 - [ ] Agent performance metrics — avg run time, token usage, success rate
 - [ ] GitHub integration — PR events trigger Code / Test Agent
@@ -64,4 +64,4 @@ Status: NOT PLANNED
 
 ---
 
-Last updated: 2026-07-30
+Last updated: 2026-07-30 (evening)

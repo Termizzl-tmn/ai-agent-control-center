@@ -4,6 +4,7 @@ import path from 'path'
 import { registerIpcHandlers } from './ipc'
 import { getDb } from './db'
 import { initScheduler } from './scheduler'
+import { initFileWatchTriggers } from './fileWatchTrigger'
 
 const isProd = process.env.NODE_ENV === 'production'
 
@@ -41,6 +42,7 @@ async function createWindow() {
 
   registerIpcHandlers(mainWindow)
   initScheduler(mainWindow)
+  initFileWatchTriggers(mainWindow)
 
   if (isProd) {
     await mainWindow.loadURL('app://./index.html')

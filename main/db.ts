@@ -29,6 +29,7 @@ function migrate(db: Database.Database) {
       mode        TEXT NOT NULL DEFAULT 'pty',
       status      TEXT NOT NULL DEFAULT 'idle',
       cronSchedule TEXT NOT NULL DEFAULT '',
+      watchPath   TEXT NOT NULL DEFAULT '',
       createdAt   INTEGER NOT NULL,
       updatedAt   INTEGER NOT NULL
     );
@@ -69,6 +70,7 @@ function migrate(db: Database.Database) {
   if (!colNames.includes('description')) db.exec("ALTER TABLE agents ADD COLUMN description TEXT NOT NULL DEFAULT ''")
   if (!colNames.includes('mode'))        db.exec("ALTER TABLE agents ADD COLUMN mode TEXT NOT NULL DEFAULT 'pty'")
   if (!colNames.includes('cronSchedule')) db.exec("ALTER TABLE agents ADD COLUMN cronSchedule TEXT NOT NULL DEFAULT ''")
+  if (!colNames.includes('watchPath'))    db.exec("ALTER TABLE agents ADD COLUMN watchPath TEXT NOT NULL DEFAULT ''")
   upgradeSeededAgents(db)
 }
 

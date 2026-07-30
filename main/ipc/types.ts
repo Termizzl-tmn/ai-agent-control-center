@@ -21,6 +21,7 @@ export interface Agent {
   mode: AgentMode
   status: AgentStatus
   cronSchedule: string
+  watchPath: string
   createdAt: number
   updatedAt: number
 }

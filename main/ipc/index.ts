@@ -7,6 +7,7 @@ import { settingsStore, type Settings } from '../settingsStore'
 import { sendToRenderer, addLog } from './utils'
 import { runAgentById, killAgentById } from '../taskRunner'
 import { scheduleAgent, unscheduleAgent, isValidCron } from '../scheduler'
+import { watchAgentPath, unwatchAgentPath, isValidWatchPath } from '../fileWatchTrigger'
 
 export function registerIpcHandlers(win: BrowserWindow) {
   // --- Agent CRUD ---
@@ -23,8 +24,8 @@ export function registerIpcHandlers(win: BrowserWindow) {
       ...data,
     }
     getDb().prepare(
-      'INSERT INTO agents (id, name, role, description, command, workingDir, mode, status, cronSchedule, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
-    ).run(agent.id, agent.name, agent.role, agent.description, agent.command, agent.workingDir, agent.mode, agent.status, agent.cronSchedule, agent.createdAt, agent.updatedAt)
+      'INSERT INTO agents (id, name, role, description, command, workingDir, mode, status, cronSchedule, watchPath, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+    ).run(agent.id, agent.name, agent.role, agent.description, agent.command, agent.workingDir, agent.mode, agent.status, agent.cronSchedule, agent.watchPath, agent.createdAt, agent.updatedAt)
     return agent
   })
 
@@ -32,8 +33,11 @@ export function registerIpcHandlers(win: BrowserWindow) {
     if (patch.cronSchedule && !isValidCron(patch.cronSchedule)) {
       throw new Error(`Invalid cron expression: ${patch.cronSchedule}`)
     }
+    if (patch.watchPath && !isValidWatchPath(patch.watchPath)) {
+      throw new Error(`Not a directory: ${patch.watchPath}`)
+    }
 
-    const PATCHABLE: ReadonlyArray<keyof Agent> = ['name', 'role', 'description', 'command', 'workingDir', 'mode', 'status', 'cronSchedule']
+    const PATCHABLE: ReadonlyArray<keyof Agent> = ['name', 'role', 'description', 'command', 'workingDir', 'mode', 'status', 'cronSchedule', 'watchPath']
     const safe = Object.fromEntries(
       Object.entries(patch).filter(([k]) => PATCHABLE.includes(k as keyof Agent))
     )
@@ -46,12 +50,17 @@ export function registerIpcHandlers(win: BrowserWindow) {
       if (agent.cronSchedule) scheduleAgent(win, agent)
       else unscheduleAgent(id)
     }
+    if ('watchPath' in patch) {
+      if (agent.watchPath) watchAgentPath(win, agent)
+      else unwatchAgentPath(id)
+    }
     return agent
   })
 
   ipcMain.handle(IPC.AGENT_DELETE, (_e, id: string) => {
     getDb().prepare('DELETE FROM agents WHERE id = ?').run(id)
     unscheduleAgent(id)
+    unwatchAgentPath(id)
     return { ok: true }
   })
 
