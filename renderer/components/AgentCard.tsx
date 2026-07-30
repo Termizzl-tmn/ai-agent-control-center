@@ -25,10 +25,30 @@ const PROGRESS_COLOR: Record<Agent['status'], string> = {
 }
 
 export function AgentCard({ agent, selected }: Props) {
-  const { selectAgent, updateAgentStatus } = useAgentStore()
+  const { selectAgent, updateAgentStatus, updateAgent } = useAgentStore()
   const meta = ROLE_META[agent.role]
   const roleColor = ROLE_HEX[agent.role]
   const [hover, setHover] = useState(false)
+  const [editingSchedule, setEditingSchedule] = useState(false)
+  const [scheduleInput, setScheduleInput] = useState(agent.cronSchedule)
+  const [scheduleError, setScheduleError] = useState<string | null>(null)
+
+  async function handleSaveSchedule() {
+    try {
+      const updated = await ipc?.updateAgent(agent.id, { cronSchedule: scheduleInput.trim() })
+      if (updated) updateAgent(updated)
+      setScheduleError(null)
+      setEditingSchedule(false)
+    } catch (err) {
+      setScheduleError(err instanceof Error ? err.message : 'Invalid schedule')
+    }
+  }
+
+  function handleCancelSchedule() {
+    setScheduleInput(agent.cronSchedule)
+    setScheduleError(null)
+    setEditingSchedule(false)
+  }
 
   async function handleRun() {
     if (!ipc) return
@@ -113,6 +133,51 @@ export function AgentCard({ agent, selected }: Props) {
           color: 'var(--text-secondary)',
         }}>{agent.description}</p>
       )}
+
+      {/* Schedule */}
+      <div onClick={(e) => e.stopPropagation()}>
+        {editingSchedule ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <input
+              autoFocus
+              value={scheduleInput}
+              onChange={(e) => setScheduleInput(e.target.value)}
+              placeholder="*/30 * * * *"
+              style={{
+                flex: 1, minWidth: 0, background: 'var(--bg-sunken)',
+                border: '1px solid var(--ds-border)', borderRadius: 'calc(var(--radius) - 2px)',
+                padding: '3px 8px', color: 'var(--text-primary)',
+                fontFamily: 'var(--font-mono)', fontSize: 10,
+              }}
+            />
+            <button onClick={handleSaveSchedule} style={{
+              border: 'none', background: 'transparent', color: 'var(--status-running)', cursor: 'pointer', fontSize: 12,
+            }}>✓</button>
+            <button onClick={handleCancelSchedule} style={{
+              border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12,
+            }}>✕</button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditingSchedule(true)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px',
+              borderRadius: 999, border: `1px solid ${agent.cronSchedule ? '#00E5A055' : 'var(--ds-border)'}`,
+              background: agent.cronSchedule ? 'rgba(0,229,160,0.08)' : 'transparent',
+              color: agent.cronSchedule ? 'var(--status-running)' : 'var(--text-muted)',
+              fontFamily: 'var(--font-mono)', fontSize: 9, cursor: 'pointer', maxWidth: '100%',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}
+          >
+            ⏱ {agent.cronSchedule || 'No schedule'}
+          </button>
+        )}
+        {scheduleError && (
+          <p style={{ margin: '2px 0 0', fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--status-error)' }}>
+            {scheduleError}
+          </p>
+        )}
+      </div>
 
       {/* Progress bar + button */}
       <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>

@@ -44,4 +44,9 @@ contextBridge.exposeInMainWorld('ipc', {
   // Settings
   getSettings: () => ipcRenderer.invoke(IPC.SETTINGS_GET),
   setSettings: (patch: Record<string, string>) => ipcRenderer.invoke(IPC.SETTINGS_SET, patch),
+
+  // Pipeline templates
+  listPipelines: () => ipcRenderer.invoke(IPC.PIPELINE_LIST),
+  savePipeline: (payload: object) => ipcRenderer.invoke(IPC.PIPELINE_SAVE, payload),
+  deletePipeline: (id: string) => ipcRenderer.invoke(IPC.PIPELINE_DELETE, id),
 })

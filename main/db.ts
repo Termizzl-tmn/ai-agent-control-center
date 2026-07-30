@@ -28,6 +28,7 @@ function migrate(db: Database.Database) {
       workingDir  TEXT NOT NULL DEFAULT '',
       mode        TEXT NOT NULL DEFAULT 'pty',
       status      TEXT NOT NULL DEFAULT 'idle',
+      cronSchedule TEXT NOT NULL DEFAULT '',
       createdAt   INTEGER NOT NULL,
       updatedAt   INTEGER NOT NULL
     );
@@ -50,6 +51,15 @@ function migrate(db: Database.Database) {
       timestamp INTEGER NOT NULL,
       FOREIGN KEY (agentId) REFERENCES agents(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS pipeline_templates (
+      id        TEXT PRIMARY KEY,
+      name      TEXT NOT NULL,
+      nodes     TEXT NOT NULL,
+      edges     TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
   `)
 
   // Add columns to existing tables if upgrading from older schema
@@ -58,6 +68,7 @@ function migrate(db: Database.Database) {
   if (!colNames.includes('role'))        db.exec("ALTER TABLE agents ADD COLUMN role TEXT NOT NULL DEFAULT 'code'")
   if (!colNames.includes('description')) db.exec("ALTER TABLE agents ADD COLUMN description TEXT NOT NULL DEFAULT ''")
   if (!colNames.includes('mode'))        db.exec("ALTER TABLE agents ADD COLUMN mode TEXT NOT NULL DEFAULT 'pty'")
+  if (!colNames.includes('cronSchedule')) db.exec("ALTER TABLE agents ADD COLUMN cronSchedule TEXT NOT NULL DEFAULT ''")
   upgradeSeededAgents(db)
 }
 

@@ -20,6 +20,7 @@ export interface Agent {
   workingDir: string
   mode: AgentMode
   status: AgentStatus
+  cronSchedule: string
   createdAt: number
   updatedAt: number
 }
@@ -44,6 +45,28 @@ export interface LogEntry {
 export interface RunCallbacks {
   onOutput: (chunk: string) => void
   onDone: (exitCode: number) => void
+}
+
+export interface PipelineNode {
+  id: string
+  role: AgentRole
+  x: number
+  y: number
+}
+
+export interface PipelineEdgeDef {
+  id: string
+  source: string
+  target: string
+}
+
+export interface PipelineTemplate {
+  id: string
+  name: string
+  nodes: PipelineNode[]
+  edges: PipelineEdgeDef[]
+  createdAt: number
+  updatedAt: number
 }
 
 export function toErrorMessage(err: unknown): string {
@@ -80,5 +103,10 @@ export const IPC = {
   // Settings (electron-store)
   SETTINGS_GET: 'settings:get',
   SETTINGS_SET: 'settings:set',
+
+  // Pipeline templates
+  PIPELINE_LIST: 'pipeline:list',
+  PIPELINE_SAVE: 'pipeline:save',
+  PIPELINE_DELETE: 'pipeline:delete',
 } as const
 

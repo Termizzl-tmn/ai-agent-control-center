@@ -79,6 +79,8 @@ export default function Dashboard() {
           )}
           <a href="/pipeline" className="hover:text-foreground transition-colors"
             style={{ color: 'var(--text-muted)' }}>Pipeline</a>
+          <a href="/builder" className="hover:text-foreground transition-colors"
+            style={{ color: 'var(--text-muted)' }}>Builder</a>
           <a href="/settings" className="hover:text-foreground transition-colors"
             style={{ color: 'var(--text-muted)' }}>Settings</a>
         </div>

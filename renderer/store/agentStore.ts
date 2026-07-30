@@ -10,6 +10,7 @@ interface AgentStore {
   setAgents: (agents: Agent[]) => void
   setLogs: (logs: LogEntry[]) => void
   updateAgentStatus: (agentId: string, status: Agent['status']) => void
+  updateAgent: (agent: Agent) => void
   appendOutput: (agentId: string, chunk: string) => void
   addLog: (entry: LogEntry) => void
   selectAgent: (id: string | null) => void
@@ -29,6 +30,11 @@ export const useAgentStore = create<AgentStore>((set) => ({
   updateAgentStatus: (agentId, status) =>
     set((s) => ({
       agents: s.agents.map((a) => (a.id === agentId ? { ...a, status } : a)),
+    })),
+
+  updateAgent: (agent) =>
+    set((s) => ({
+      agents: s.agents.map((a) => (a.id === agent.id ? agent : a)),
     })),
 
   appendOutput: (agentId, chunk) =>

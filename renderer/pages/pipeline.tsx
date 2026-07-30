@@ -33,17 +33,30 @@ export default function Pipeline() {
             color: 'var(--text-muted)',
           }}>Pipeline</span>
         </div>
-        <a
-          href="/"
-          style={{
-            fontFamily: 'var(--font-mono)', fontSize: 10,
-            textTransform: 'uppercase', letterSpacing: '0.12em',
-            color: 'var(--text-muted)',
-          }}
-          className="hover:text-foreground transition-colors"
-        >
-          ← Dashboard
-        </a>
+        <div className="flex items-center gap-4">
+          <a
+            href="/builder"
+            style={{
+              fontFamily: 'var(--font-mono)', fontSize: 10,
+              textTransform: 'uppercase', letterSpacing: '0.12em',
+              color: 'var(--text-muted)',
+            }}
+            className="hover:text-foreground transition-colors"
+          >
+            Builder
+          </a>
+          <a
+            href="/"
+            style={{
+              fontFamily: 'var(--font-mono)', fontSize: 10,
+              textTransform: 'uppercase', letterSpacing: '0.12em',
+              color: 'var(--text-muted)',
+            }}
+            className="hover:text-foreground transition-colors"
+          >
+            ← Dashboard
+          </a>
+        </div>
       </header>
 
       <div className="flex-1 overflow-hidden">

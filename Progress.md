@@ -6,9 +6,10 @@
 
 ## Phase 1 — Core MVP
 
-**Status: COMPLETE** · Completed 2026-07-10
+Status: COMPLETE · Completed 2026-07-10
 
 ### Infrastructure
+
 - [x] SQLite singleton (`main/db.ts`) — migrations, 7 default agents seeded on first launch
 - [x] `pty` mode executor (`main/executor.ts`) — node-pty shell, p-queue concurrency 3, kill support
 - [x] `claude` mode executor (`main/claudeExecutor.ts`) — Anthropic SDK streaming, AbortController per agent
@@ -18,6 +19,7 @@
 - [x] Filesystem watcher (`main/watcher.ts`) — chokidar FSWatcher per directory
 
 ### Renderer
+
 - [x] Global IPC push listeners (`pages/_app.tsx`) — TASK_OUTPUT / TASK_DONE / LOG_ENTRY registered once
 - [x] Zustand store (`store/agentStore.ts`) — agents, logs, terminalOutput, selectedAgentId + actions
 - [x] Dashboard (`pages/index.tsx`) — AgentCard grid, Office / Logs / Terminal tabs
@@ -27,11 +29,13 @@
 - [x] PixelOffice canvas (`components/pixi/OfficeScene.tsx`) — Canvas 2D office floor, 7 agents, walk cycles, status glow rings
 
 ### Design System
+
 - [x] CSS tokens — dark palette, spacing, radius, border
 - [x] Fonts — Syne (headings), DM Mono (labels/code), DM Sans (body)
 - [x] Agent role colors + borders applied throughout (AgentCard, PipelineView, OfficeScene)
 
 ### End-to-End Flows Verified
+
 - Launch → 7 agents seeded and visible in Dashboard + Office canvas
 - Run agent → streams output (pty shell or Claude API) to terminal panel in real time
 - Agent status propagates live → AgentCard badge, OfficeScene glow, PipelineView edge color
@@ -43,10 +47,10 @@
 
 ## Phase 2 — Power Features
 
-**Status: NOT STARTED**
+Status: IN PROGRESS
 
-- [ ] Drag-and-drop pipeline builder — save and reuse workflow templates
-- [ ] Scheduled agents — cron-based triggers via node-cron
+- [x] Drag-and-drop pipeline builder — save and reuse workflow templates
+- [x] Scheduled agents — cron-based triggers via node-cron
 - [ ] Auto-trigger on file change — filesystem watcher → agent run
 - [ ] Slack / LINE alert dispatch via Alert Agent
 - [ ] Agent performance metrics — avg run time, token usage, success rate
@@ -56,8 +60,8 @@
 
 ## Phase 3 — TBD
 
-**Status: NOT PLANNED**
+Status: NOT PLANNED
 
 ---
 
-_Last updated: 2026-07-10_
+Last updated: 2026-07-30

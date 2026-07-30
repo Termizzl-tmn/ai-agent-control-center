@@ -1,25 +1,12 @@
 import { ipcMain, BrowserWindow } from 'electron'
-import ElectronStore from 'electron-store'
-import { IPC, Agent, TaskRun, LogEntry, toErrorMessage, exitCodeToStatus } from './types'
+import { IPC, Agent, PipelineNode, PipelineEdgeDef, PipelineTemplate } from './types'
 import { getDb } from '../db'
-import { runAgent, killAgent } from '../executor'
-import { runClaudeAgent, killClaudeAgent } from '../claudeExecutor'
 import { startWatcher, stopWatcher } from '../watcher'
 import { randomUUID } from 'crypto'
-
-interface Settings {
-  anthropicApiKey: string
-  model: string
-}
-
-const settingsStore = new ElectronStore<Settings>({
-  name: 'settings',
-  defaults: { anthropicApiKey: '', model: 'claude-sonnet-4-6' },
-})
-
-function sendToRenderer(win: BrowserWindow, channel: string, payload: unknown) {
-  if (!win.isDestroyed()) win.webContents.send(channel, payload)
-}
+import { settingsStore, type Settings } from '../settingsStore'
+import { sendToRenderer, addLog } from './utils'
+import { runAgentById, killAgentById } from '../taskRunner'
+import { scheduleAgent, unscheduleAgent, isValidCron } from '../scheduler'
 
 export function registerIpcHandlers(win: BrowserWindow) {
   // --- Agent CRUD ---
@@ -36,88 +23,44 @@ export function registerIpcHandlers(win: BrowserWindow) {
       ...data,
     }
     getDb().prepare(
-      'INSERT INTO agents (id, name, role, description, command, workingDir, mode, status, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?)'
-    ).run(agent.id, agent.name, agent.role, agent.description, agent.command, agent.workingDir, agent.mode, agent.status, agent.createdAt, agent.updatedAt)
+      'INSERT INTO agents (id, name, role, description, command, workingDir, mode, status, cronSchedule, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+    ).run(agent.id, agent.name, agent.role, agent.description, agent.command, agent.workingDir, agent.mode, agent.status, agent.cronSchedule, agent.createdAt, agent.updatedAt)
     return agent
   })
 
   ipcMain.handle(IPC.AGENT_UPDATE, (_e, id: string, patch: Partial<Agent>) => {
-    const PATCHABLE: ReadonlyArray<keyof Agent> = ['name', 'role', 'description', 'command', 'workingDir', 'mode', 'status']
+    if (patch.cronSchedule && !isValidCron(patch.cronSchedule)) {
+      throw new Error(`Invalid cron expression: ${patch.cronSchedule}`)
+    }
+
+    const PATCHABLE: ReadonlyArray<keyof Agent> = ['name', 'role', 'description', 'command', 'workingDir', 'mode', 'status', 'cronSchedule']
     const safe = Object.fromEntries(
       Object.entries(patch).filter(([k]) => PATCHABLE.includes(k as keyof Agent))
     )
     const updated = { ...safe, updatedAt: Date.now() }
     const sets = Object.keys(updated).map(k => `${k} = ?`).join(', ')
     getDb().prepare(`UPDATE agents SET ${sets} WHERE id = ?`).run(...Object.values(updated), id)
-    return getDb().prepare('SELECT * FROM agents WHERE id = ?').get(id)
+
+    const agent = getDb().prepare('SELECT * FROM agents WHERE id = ?').get(id) as Agent
+    if ('cronSchedule' in patch) {
+      if (agent.cronSchedule) scheduleAgent(win, agent)
+      else unscheduleAgent(id)
+    }
+    return agent
   })
 
   ipcMain.handle(IPC.AGENT_DELETE, (_e, id: string) => {
     getDb().prepare('DELETE FROM agents WHERE id = ?').run(id)
+    unscheduleAgent(id)
     return { ok: true }
   })
 
   // --- Task execution ---
-  ipcMain.handle(IPC.TASK_RUN, async (_e, agentId: string) => {
-    const agent = getDb().prepare('SELECT * FROM agents WHERE id = ?').get(agentId) as Agent
-    if (!agent) throw new Error(`Agent ${agentId} not found`)
-
-    const run: TaskRun = {
-      id: randomUUID(),
-      agentId,
-      startedAt: Date.now(),
-      output: '',
-    }
-
-    getDb().prepare(
-      'INSERT INTO task_runs (id, agentId, startedAt, output) VALUES (?,?,?,?)'
-    ).run(run.id, run.agentId, run.startedAt, run.output)
-
-    getDb().prepare('UPDATE agents SET status = ?, updatedAt = ? WHERE id = ?')
-      .run('running', Date.now(), agentId)
-
-    addLog(win, agentId, 'info', `Agent started (${agent.mode} mode)`)
-
-    const callbacks = {
-      onOutput: (chunk: string) => {
-        run.output += chunk
-        sendToRenderer(win, IPC.TASK_OUTPUT, { runId: run.id, agentId, chunk })
-      },
-      onDone: (exitCode: number) => {
-        run.finishedAt = Date.now()
-        run.exitCode = exitCode
-        getDb().prepare(
-          'UPDATE task_runs SET finishedAt = ?, exitCode = ?, output = ? WHERE id = ?'
-        ).run(run.finishedAt, exitCode, run.output, run.id)
-        getDb().prepare('UPDATE agents SET status = ?, updatedAt = ? WHERE id = ?')
-          .run(exitCodeToStatus(exitCode), Date.now(), agentId)
-        addLog(win, agentId, exitCode === 0 ? 'info' : 'error', `Agent finished (exit ${exitCode})`)
-        sendToRenderer(win, IPC.TASK_DONE, { runId: run.id, agentId, exitCode })
-      },
-    }
-
-    const handleUnexpectedError = (err: unknown) => {
-      callbacks.onOutput(`\n[AgentFlow Error] ${toErrorMessage(err)}\n`)
-      callbacks.onDone(1)
-    }
-
-    if (agent.mode === 'claude') {
-      const { anthropicApiKey: apiKey, model } = settingsStore.store
-      runClaudeAgent(agent, run, apiKey, model, callbacks).catch(handleUnexpectedError)
-    } else {
-      runAgent(agent, run, callbacks).catch(handleUnexpectedError)
-    }
-
-    return run
-  })
+  ipcMain.handle(IPC.TASK_RUN, (_e, agentId: string) => runAgentById(win, agentId))
 
   ipcMain.handle(IPC.TASK_KILL, (_e, agentId: string) => {
     const agent = getDb().prepare('SELECT * FROM agents WHERE id = ?').get(agentId) as Agent | undefined
-    if (agent?.mode === 'claude') {
-      killClaudeAgent(agentId)
-    } else {
-      killAgent(agentId)
-    }
+    if (agent) killAgentById(agentId, agent.mode)
     getDb().prepare('UPDATE agents SET status = ?, updatedAt = ? WHERE id = ?')
       .run('idle', Date.now(), agentId)
     addLog(win, agentId, 'warn', 'Agent killed by user')
@@ -153,18 +96,43 @@ export function registerIpcHandlers(win: BrowserWindow) {
     }
     return settingsStore.store
   })
-}
 
-function addLog(win: BrowserWindow, agentId: string, level: LogEntry['level'], message: string) {
-  const entry: LogEntry = {
-    id: randomUUID(),
-    agentId,
-    level,
-    message,
-    timestamp: Date.now(),
-  }
-  getDb().prepare(
-    'INSERT INTO logs (id, agentId, level, message, timestamp) VALUES (?,?,?,?,?)'
-  ).run(entry.id, entry.agentId, entry.level, entry.message, entry.timestamp)
-  sendToRenderer(win, IPC.LOG_ENTRY, entry)
+  // --- Pipeline templates ---
+  ipcMain.handle(IPC.PIPELINE_LIST, () => {
+    const rows = getDb().prepare(
+      'SELECT * FROM pipeline_templates ORDER BY updatedAt DESC'
+    ).all() as Array<{ id: string; name: string; nodes: string; edges: string; createdAt: number; updatedAt: number }>
+    return rows.map((r) => ({
+      ...r,
+      nodes: JSON.parse(r.nodes) as PipelineNode[],
+      edges: JSON.parse(r.edges) as PipelineEdgeDef[],
+    }))
+  })
+
+  ipcMain.handle(IPC.PIPELINE_SAVE, (_e, payload: { id?: string; name: string; nodes: PipelineNode[]; edges: PipelineEdgeDef[] }) => {
+    const now = Date.now()
+    const id = payload.id ?? randomUUID()
+    const nodesJson = JSON.stringify(payload.nodes)
+    const edgesJson = JSON.stringify(payload.edges)
+
+    const existing = getDb().prepare('SELECT createdAt FROM pipeline_templates WHERE id = ?').get(id) as { createdAt: number } | undefined
+    if (existing) {
+      getDb().prepare('UPDATE pipeline_templates SET name = ?, nodes = ?, edges = ?, updatedAt = ? WHERE id = ?')
+        .run(payload.name, nodesJson, edgesJson, now, id)
+    } else {
+      getDb().prepare('INSERT INTO pipeline_templates (id, name, nodes, edges, createdAt, updatedAt) VALUES (?,?,?,?,?,?)')
+        .run(id, payload.name, nodesJson, edgesJson, now, now)
+    }
+
+    const template: PipelineTemplate = {
+      id, name: payload.name, nodes: payload.nodes, edges: payload.edges,
+      createdAt: existing?.createdAt ?? now, updatedAt: now,
+    }
+    return template
+  })
+
+  ipcMain.handle(IPC.PIPELINE_DELETE, (_e, id: string) => {
+    getDb().prepare('DELETE FROM pipeline_templates WHERE id = ?').run(id)
+    return { ok: true }
+  })
 }

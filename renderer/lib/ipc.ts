@@ -1,4 +1,4 @@
-import type { Agent, LogEntry } from '../../main/ipc/types'
+import type { Agent, LogEntry, PipelineTemplate } from '../../main/ipc/types'
 
 export interface AppSettings {
   anthropicApiKey: string
@@ -13,7 +13,7 @@ declare global {
       updateAgent: (id: string, patch: Partial<Agent>) => Promise<Agent>
       deleteAgent: (id: string) => Promise<{ ok: boolean }>
 
-      runAgent: (agentId: string) => Promise<{ id: string; agentId: string; startedAt: number; output: string }>
+      runAgent: (agentId: string) => Promise<{ id: string; agentId: string; startedAt: number; output: string } | null>
       killAgent: (agentId: string) => Promise<{ ok: boolean }>
       onTaskOutput: (cb: (data: { runId: string; agentId: string; chunk: string }) => void) => () => void
       onTaskDone: (cb: (data: { runId: string; agentId: string; exitCode: number }) => void) => () => void
@@ -27,6 +27,10 @@ declare global {
 
       getSettings: () => Promise<AppSettings>
       setSettings: (patch: Partial<AppSettings>) => Promise<AppSettings>
+
+      listPipelines: () => Promise<PipelineTemplate[]>
+      savePipeline: (payload: { id?: string; name: string; nodes: PipelineTemplate['nodes']; edges: PipelineTemplate['edges'] }) => Promise<PipelineTemplate>
+      deletePipeline: (id: string) => Promise<{ ok: boolean }>
     }
   }
 }
